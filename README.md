@@ -30,7 +30,9 @@ The code is released under GPLv3, but if you wish to write your own proprietary 
 1. Optionally, connect your Playdate to the comupter and upload to the device by going to `Device` -> `Upload Game to Device..` in the Playdate Simulator.
 
 ## Profiler
-While working on this project, I wrote a performance profiler to help me keep track of how fast each frame was and performance of certain complex code.  It is disabled in the final release, but, if you're curious to take a look at these metrics, you can renable the profiler by setting `ENABLE_PROFILING` to `true` in `profiler.zig`.  Then, while running the game, you can toggle the profiler buy holding the `A`, `B`, and `Up` buttons.
+While working on this project, I wrote a performance profiler to help me keep track of how fast each frame was and performance of certain complex code.  
+
+It is disabled in the final release, but, if you're curious to take a look at these metrics, you can renable the profiler by setting `ENABLE_PROFILING` to `true` in `profiler.zig`.  Then, while running the game, you can toggle the profiler buy holding the `A`, `B`, and `Up` buttons.
 
 ## Credits
 - Daniel Bokser - Ported UPWARD to Playdate.
