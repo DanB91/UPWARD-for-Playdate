@@ -11,7 +11,7 @@ pub fn FixedList(comptime T: type, comptime max_len: usize) type {
                 .store = undefined,
                 .len = values.len,
             };
-            inline for (values) |v, i| {
+            inline for (values, 0..) |v, i| {
                 ret.store[i] = v;
             }
             return ret;

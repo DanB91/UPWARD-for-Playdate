@@ -253,7 +253,7 @@ pub fn init(
         .start_x = 0,
         .start_y = 0,
 
-        .random_state = @intCast(toolbox.RandomState, toolbox.microseconds()),
+        .random_state = @as(toolbox.RandomState, @intCast(toolbox.microseconds())),
         .save_data = [_]u8{0} ** (4 * 6),
         .playing_music = null,
 
@@ -291,7 +291,7 @@ pub fn init(
     dset(3, game.best_time, game);
     dset(4, game.least_deaths, game);
 
-    for (game.map_sprites) |*s, i| s.* = level_data.map_sprites[i];
+    for (game.map_sprites, 0..) |*s, i| s.* = level_data.map_sprites[i];
 
     game_savedata_load(game);
 
@@ -300,7 +300,7 @@ pub fn init(
     level_load(game);
 }
 fn music_loop_callback(player: *pdapi.SamplePlayer, userdata: ?*anyopaque) void {
-    var game = @ptrCast(*Game, @alignCast(@alignOf(Game), userdata.?));
+    var game = @as(*Game, @ptrCast(@alignCast(userdata.?)));
 
     //edge case. should only happen if there is a race condition between stopping music in
     //the game loop and here.  I'm not even sure it's possible.  Should probably have an assert instead...
@@ -428,11 +428,11 @@ fn blob_update(game: *Game) void {
 fn blob_animate(blob: *Blob) void {
     if (blob.spd_y < 0) {
         blob.t += 0.7;
-        blob.spr = @floatToInt(Sprite, toolbox.clamp((blob.t / 3) + 3, 3, 5));
+        blob.spr = @as(Sprite, @intFromFloat(toolbox.clamp((blob.t / 3) + 3, 3, 5)));
         blob.has_landed = false;
     } else if (blob.spd_y > 0) {
         blob.t -= 1;
-        blob.spr = @floatToInt(Sprite, toolbox.clamp((blob.t / 3) + 5, 3, 5));
+        blob.spr = @as(Sprite, @intFromFloat(toolbox.clamp((blob.t / 3) + 5, 3, 5)));
         blob.has_landed = false;
     } else {
         blob.t = 0;
@@ -719,7 +719,7 @@ fn game_draw(game: *Game) void {
     }
     if (blob.message.rune_length > 0 and !level.give_up) {
         const s = blob.message;
-        const lenf32 = @intToFloat(WorldDim, s.rune_length);
+        const lenf32 = @as(WorldDim, @floatFromInt(s.rune_length));
         if (game.level_number != 31) {
             rectfill(
                 blob.x - lenf32 * 2 + 3,
@@ -738,28 +738,28 @@ fn game_draw(game: *Game) void {
         {
             const s = toolbox.string8_fmt(&buffer, "deaths: {}", .{game.deaths}) catch |e|
                 toolbox.panic("print stats failed:  {}", .{e});
-            const rune_length_f32 = @intToFloat(WorldDim, s.rune_length);
+            const rune_length_f32 = @as(WorldDim, @floatFromInt(s.rune_length));
             print(s, 64 - rune_length_f32 * 2 + 3, 75, 0);
         }
         {
             const s = toolbox.string8_fmt(&buffer, "time: {s}", .{game.clock_s}) catch |e|
                 toolbox.panic("print stats failed:  {}", .{e});
-            const rune_length_f32 = @intToFloat(WorldDim, s.rune_length);
+            const rune_length_f32 = @as(WorldDim, @floatFromInt(s.rune_length));
             print(s, 64 - rune_length_f32 * 2 + 3, 83, 0);
         }
         if (game.new_record) {
             const s = toolbox.string8_literal("new record!");
-            const rune_length_f32 = @intToFloat(WorldDim, s.rune_length);
+            const rune_length_f32 = @as(WorldDim, @floatFromInt(s.rune_length));
             print(s, 64 - rune_length_f32 * 2 + 3, 91, 0);
         }
         {
             const s = toolbox.string8_literal("ported with ♥ by daniel bokser");
-            const rune_length_f32 = @intToFloat(WorldDim, s.rune_length);
+            const rune_length_f32 = @as(WorldDim, @floatFromInt(s.rune_length));
             print(s, 64 - rune_length_f32 * 2 + 3, 5, 0);
         }
         {
             const s = toolbox.string8_literal("made with ♥ by matthias falk");
-            const rune_length_f32 = @intToFloat(WorldDim, s.rune_length);
+            const rune_length_f32 = @as(WorldDim, @floatFromInt(s.rune_length));
             print(s, 64 - rune_length_f32 * 2 + 3, 119, 0); //6);
         }
     }
@@ -785,8 +785,8 @@ fn draw_hud(game: *Game) void {
 
     {
         const play_time = game.clock;
-        const play_min = @floatToInt(u32, play_time / 60);
-        const play_sec = @floatToInt(u32, play_time - @floor(play_time / 60) * 60);
+        const play_min = @as(u32, @intFromFloat(play_time / 60));
+        const play_sec = @as(u32, @intFromFloat(play_time - @floor(play_time / 60) * 60));
         draw_hud_text_from_right("time: {}:{:0>2}", .{ play_min, play_sec }, 0 * line_height);
     }
     {
@@ -802,8 +802,8 @@ fn draw_hud(game: *Game) void {
         );
     }
     if (game.best_time >= 0) {
-        const play_min = @floatToInt(u32, game.best_time / 60);
-        const play_sec = @floatToInt(u32, game.best_time - @floor(game.best_time / 60) * 60);
+        const play_min = @as(u32, @intFromFloat(game.best_time / 60));
+        const play_sec = @as(u32, @intFromFloat(game.best_time - @floor(game.best_time / 60) * 60));
         draw_hud_text_from_right(
             "best: {}:{:0>2}",
             .{ play_min, play_sec },
@@ -959,11 +959,11 @@ fn update_entity(e: *entity.Entity, game: *Game) void {
         },
         .ConveyorLeft => {
             e.t += 0.5;
-            e.spr = @floatToInt(Sprite, @mod((e.t / 4), 4) + 40);
+            e.spr = @as(Sprite, @intFromFloat(@mod((e.t / 4), 4) + 40));
         },
         .ConveyorRight => {
             e.t += 0.5;
-            e.spr = @floatToInt(Sprite, @mod((e.t / 4), 4) + 44);
+            e.spr = @as(Sprite, @intFromFloat(@mod((e.t / 4), 4) + 44));
         },
         .BrokenGround => |*broken_ground| {
             if (blob.y + 8 == e.y and (blob.x - blob.pad_left < e.x + 8) and (blob.x + 8 + blob.pad_right > e.x)) {
@@ -974,7 +974,7 @@ fn update_entity(e: *entity.Entity, game: *Game) void {
                 //      but this seems to be too fast on the Playdate.
                 //      Even though the frame rate is the same 🙃
                 e.t += 0.8;
-                e.spr = @floatToInt(Sprite, 49 + (e.t * 0.125));
+                e.spr = @as(Sprite, @intFromFloat(49 + (e.t * 0.125)));
                 if (e.spr > 54) e.spr = 54;
                 if (e.t > 40) {
                     broken_ground.has_triggered = false;
@@ -1081,8 +1081,8 @@ fn update_entity(e: *entity.Entity, game: *Game) void {
                 level.game_won = true;
 
                 const play_time = game.clock;
-                const play_min = @floatToInt(i32, play_time / 60);
-                const play_sec = @floatToInt(i32, play_time - @floor(play_time / 60) * 60);
+                const play_min = @as(i32, @intFromFloat(play_time / 60));
+                const play_sec = @as(i32, @intFromFloat(play_time - @floor(play_time / 60) * 60));
                 var buffer = game.level_arena.push_slice(u8, 128);
                 game.clock_s = toolbox.string8_fmt(buffer, "{} min {} sec", .{ play_min, play_sec }) catch
                     toolbox.string8_literal("Error calculating time");
@@ -1103,7 +1103,7 @@ fn update_entity(e: *entity.Entity, game: *Game) void {
             }
             if (ms_blob.state != .Lying) {
                 e.t += 0.5;
-                e.spr = @floatToInt(Sprite, @mod(e.t / 2, 2) + 10);
+                e.spr = @as(Sprite, @intFromFloat(@mod(e.t / 2, 2) + 10));
             }
             if (ms_blob.state == .Moving) {
                 e.x += 0.5;
@@ -1133,11 +1133,11 @@ fn medicine_particles(e: *const entity.Entity, game: *Game) void {
 }
 fn anim_enemy_black(e: *entity.Entity) void {
     e.t += 0.5;
-    e.spr = @floatToInt(Sprite, @mod((e.t / 2), 2) + 60);
+    e.spr = @as(Sprite, @intFromFloat(@mod((e.t / 2), 2) + 60));
 }
 fn anim_enemy_white(e: *entity.Entity) void {
     e.t += 0.5;
-    e.spr = @floatToInt(Sprite, @mod((e.t / 2), 2) + 55);
+    e.spr = @as(Sprite, @intFromFloat(@mod((e.t / 2), 2) + 55));
 }
 
 fn update_and_render_menu(game: *Game) void {
@@ -1200,8 +1200,8 @@ fn update_and_render_menu(game: *Game) void {
         spr(14, blob.x - 3, blob.y - 2, game);
     }
     spr(blob.spr, blob.x, blob.y, game);
-    const y1 = @intToFloat(WorldDim, if (game.start_t > 8) 8 else game.start_t);
-    const y2 = @intToFloat(WorldDim, if (game.start_t > 16) 16 else game.start_t);
+    const y1 = @as(WorldDim, @floatFromInt(if (game.start_t > 8) 8 else game.start_t));
+    const y2 = @as(WorldDim, @floatFromInt(if (game.start_t > 16) 16 else game.start_t));
 
     if (game.mode == .StartDownward) rectfill(22, 0 + y1, 105, 16 + y1 + 1, 0);
     if (game.mode == .Start) sspr(0, 96, 64, 16, 32, 1 + y1, game);
@@ -1211,7 +1211,7 @@ fn update_and_render_menu(game: *Game) void {
             toolbox.string8_literal("jump: a/↑")
         else
             toolbox.string8_literal("down: a/↓");
-        const rune_length_f32 = @intToFloat(f32, s.rune_length);
+        const rune_length_f32 = @as(f32, @floatFromInt(s.rune_length));
         const textbox_x1 = 64 - rune_length_f32 * 2 - 1;
         const textbox_y1: f32 = 76 - 3;
         const textbox_x2 = 64 + rune_length_f32 * 2 + 1;
@@ -1227,7 +1227,7 @@ fn update_and_render_menu(game: *Game) void {
     }
     {
         const s = toolbox.string8_literal("new game? push bbb");
-        const rune_length_f32 = @intToFloat(f32, s.rune_length);
+        const rune_length_f32 = @as(f32, @floatFromInt(s.rune_length));
         const textbox_x1 = 64 - rune_length_f32 * 2 - 1;
         const textbox_y1: f32 = 97;
         const textbox_x2 = 64 + rune_length_f32 * 2 - 1;
@@ -1240,7 +1240,7 @@ fn update_and_render_menu(game: *Game) void {
     }
     {
         const s = toolbox.string8_literal("ported by daniel bokser");
-        const rune_length_f32 = @intToFloat(f32, s.rune_length);
+        const rune_length_f32 = @as(f32, @floatFromInt(s.rune_length));
         const textbox_x1 = 64 - rune_length_f32 * 2 + 1;
         const textbox_y1: f32 = 135 - y2;
         const textbox_x2 = 64 + rune_length_f32 * 2;
@@ -1252,7 +1252,7 @@ fn update_and_render_menu(game: *Game) void {
     }
     {
         const s = toolbox.string8_literal("original game by matthias falk");
-        const rune_length_f32 = @intToFloat(f32, s.rune_length);
+        const rune_length_f32 = @as(f32, @floatFromInt(s.rune_length));
         const textbox_x1 = 64 - rune_length_f32 * 2 + 1;
         const textbox_y1: f32 = 127 - y2;
         const textbox_x2 = 64 + rune_length_f32 * 2;
@@ -1412,7 +1412,7 @@ fn level_load(game: *Game) void {
     game.entities.clear();
     game.particles.clear();
 
-    var level_descriptor = level_data.levels[@intCast(usize, game.level_number - 1)];
+    var level_descriptor = level_data.levels[@as(usize, @intCast(game.level_number - 1))];
     game.map_x = level_descriptor.map_x;
     game.map_y = level_descriptor.map_y;
     game.start_x = level_descriptor.start_x;
@@ -1691,19 +1691,19 @@ fn blob_jump(height: WorldDim, game: *Game) void {
 }
 
 fn menu_item_hide_hud(userdata: ?*anyopaque) callconv(.C) void {
-    var game = @ptrCast(*Game, @alignCast(@alignOf(Game), userdata.?));
+    var game = @as(*Game, @ptrCast(@alignCast(userdata.?)));
     game.hide_hud = pdapi.get_menu_item_value_bool(game.hide_hud_menu_item);
     dset(5, @as(u32, if (game.hide_hud) 1 else 0), game);
     dsave(game);
 }
 
 fn menu_item_level_retry(userdata: ?*anyopaque) callconv(.C) void {
-    var game = @ptrCast(*Game, @alignCast(@alignOf(Game), userdata.?));
+    var game = @as(*Game, @ptrCast(@alignCast(userdata.?)));
     level_retry(game);
 }
 
 fn menu_item_main_menu(userdata: ?*anyopaque) callconv(.C) void {
-    var game = @ptrCast(*Game, @alignCast(@alignOf(Game), userdata.?));
+    var game = @as(*Game, @ptrCast(@alignCast(userdata.?)));
     init(game.initial_state);
 }
 
@@ -1711,13 +1711,13 @@ fn message(text: toolbox.String8, comptime clr: P8Color) void {
     //NOTE: unused, from original code
     _ = clr;
     rectfill(0, 56, 127, 72, 0);
-    print(text, 64 - @intToFloat(WorldDim, text.rune_length) * 2 + 3, 62, 7);
+    print(text, 64 - @as(WorldDim, @floatFromInt(text.rune_length)) * 2 + 3, 62, 7);
 }
 
 //world to pixel dimension
 inline fn wtop(n: WorldDim) pdapi.Pixel {
     const MULTIPLIER = 1.875; //(SCREEN_SIZE_PX / 128);
-    return @floatToInt(pdapi.Pixel, n * MULTIPLIER);
+    return @as(pdapi.Pixel, @intFromFloat(n * MULTIPLIER));
 }
 //PICO-8 to Playdate Color
 inline fn p8topdcol(p8col: P8Color) pdapi.LCDColor {
@@ -1725,12 +1725,12 @@ inline fn p8topdcol(p8col: P8Color) pdapi.LCDColor {
 }
 //world to tile dimension
 inline fn wtot(n: WorldDim) TileDim {
-    return @floatToInt(TileDim, n / 8);
+    return @as(TileDim, @intFromFloat(n / 8));
 }
 
 //tile to world dimension
 inline fn ttow(n: TileDim) WorldDim {
-    return @intToFloat(WorldDim, n * 8);
+    return @as(WorldDim, @floatFromInt(n * 8));
 }
 
 //PICO-8 API
@@ -1770,7 +1770,7 @@ pub fn map(tile_x: TileDim, tile_y: TileDim, game: *Game) void {
         while (x < tile_x + MAP_SCREEN_SIZE) : (x += 1) {
             const sprite = mget(x, y, game);
             const bitmap = pdapi.get_table_bitmap(game.sprites, sprite).?;
-            pdapi.draw_bitmap(bitmap, @intCast(i32, (x - tile_x) * TILE_SIZE), @intCast(i32, (y - tile_y) * TILE_SIZE), .BitmapUnflipped);
+            pdapi.draw_bitmap(bitmap, @as(i32, @intCast((x - tile_x) * TILE_SIZE)), @as(i32, @intCast((y - tile_y) * TILE_SIZE)), .BitmapUnflipped);
         }
     }
 }
@@ -1791,10 +1791,10 @@ pub fn mid(a: anytype, b: @TypeOf(a), c: @TypeOf(a)) @TypeOf(a) {
 }
 
 pub inline fn mget(x: TileDim, y: TileDim, game: *const Game) Sprite {
-    return game.map_sprites[@intCast(usize, y * level_data.MAP_STRIDE + x)];
+    return game.map_sprites[@as(usize, @intCast(y * level_data.MAP_STRIDE + x))];
 }
 pub inline fn mset(x: TileDim, y: TileDim, sprite: Sprite, game: *Game) void {
-    game.map_sprites[@intCast(usize, y * level_data.MAP_STRIDE + x)] = sprite;
+    game.map_sprites[@as(usize, @intCast(y * level_data.MAP_STRIDE + x))] = sprite;
 }
 
 pub inline fn spr(sprite: Sprite, x: WorldDim, y: WorldDim, game: *Game) void {
@@ -1839,15 +1839,15 @@ pub fn dget(comptime index: usize, comptime ReturnType: type, game: *Game) Retur
     }
     var ret: [4]u8 = undefined;
     const save_data = game.save_data[index * 4 .. index * 4 + 4];
-    for (ret) |*dest, i| dest.* = save_data[i];
-    return @bitCast(ReturnType, ret);
+    for (&ret, 0..) |*dest, i| dest.* = save_data[i];
+    return @as(ReturnType, @bitCast(ret));
 }
 pub fn dset(comptime index: usize, data: anytype, game: *Game) void {
     if (@sizeOf(@TypeOf(data)) != 4) {
         @compileError("dset can only store 4 byte types");
     }
-    const bytes = @bitCast([4]u8, data);
-    for (bytes) |byte, i| {
+    const bytes: [4]u8 = @bitCast(data);
+    for (bytes, 0..) |byte, i| {
         game.save_data[index * 4 + i] = byte;
     }
 }
@@ -1976,7 +1976,7 @@ pub fn music(m: P8Music, game: *Game) void {
     if (m < 0) {
         return;
     }
-    const music_index = @intCast(usize, m);
+    const music_index = @as(usize, @intCast(m));
     game.playing_music = &game.music[music_index];
     pdapi.set_sample_for_sample_player(game.music_player, game.music[music_index].sample);
     pdapi.play_sample_player(game.music_player, 0, 1);

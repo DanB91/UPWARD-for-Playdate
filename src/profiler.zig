@@ -154,9 +154,9 @@ pub fn draw_stats(font: *pdapi.LCDFont, scratch_arena: *toolbox.Arena) void {
 
         var it = section_map.iterator();
         while (it.next()) |kv| {
-            const average = if (kv.v.count != 0) @intToFloat(f32, kv.v.total_time) / @intToFloat(f32, kv.v.count) else 0;
+            const average = if (kv.v.count != 0) @as(f32, @floatFromInt(kv.v.total_time)) / @as(f32, @floatFromInt(kv.v.count)) else 0;
             const len = std.fmt.count("{s}: Last: {d:.2}ms, Avg: {d:.2}ms, Max: {d:.2}ms", .{ kv.k, kv.v.last_time, average, kv.v.max_time }) + 1;
-            const line_buffer = scratch_arena.push_slice(u8, @intCast(usize, len));
+            const line_buffer = scratch_arena.push_slice(u8, @as(usize, @intCast(len)));
             const line = std.fmt.bufPrintZ(line_buffer, "{s}: Last: {d:.2}ms, Avg: {d:.2}ms, Max: {d:.2}ms", .{ kv.k, kv.v.last_time, average, kv.v.max_time }) catch "Unknown error!";
 
             {
@@ -189,7 +189,7 @@ pub fn draw_stats(font: *pdapi.LCDFont, scratch_arena: *toolbox.Arena) void {
                 }
             }
         }
-        for (sort_scratch) |entry, i| sorted_lines[i] = entry.?.line;
+        for (sort_scratch, 0..) |entry, i| sorted_lines[i] = entry.?.line;
     }
 
     pdapi.push_drawing_context(null);
@@ -210,7 +210,7 @@ pub fn draw_stats(font: *pdapi.LCDFont, scratch_arena: *toolbox.Arena) void {
 
     const line_height = pdapi.get_font_height() + 4;
     pdapi.set_draw_offset(0, 0);
-    pdapi.set_screen_clip_rect(0, 0, width, (@intCast(i32, sorted_lines.len) + 1) * line_height);
+    pdapi.set_screen_clip_rect(0, 0, width, (@as(i32, @intCast(sorted_lines.len)) + 1) * line_height);
     pdapi.clear_screen(.ColorWhite);
     {
         var i: pdapi.Pixel = 0;

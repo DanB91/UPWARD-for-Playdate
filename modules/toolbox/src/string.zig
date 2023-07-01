@@ -3,9 +3,7 @@ const std = @import("std");
 pub const Rune = u32;
 
 pub fn string8_literal(comptime bytes: [:0]const u8) String8 {
-    comptime {
-        return string8_bytes(bytes);
-    }
+    return string8_bytes(bytes);
 }
 pub fn string8_fmt(buffer: []u8, comptime fmt: []const u8, args: anytype) !String8 {
     const string_bytes = try std.fmt.bufPrint(buffer, fmt, args);
@@ -126,7 +124,7 @@ pub fn string_equals(s1: anytype, s2: anytype) bool {
     const b = s2.bytes;
     if (a.len != b.len) return false;
     if (a.ptr == b.ptr) return true;
-    for (a) |item, index| {
+    for (a, 0..) |item, index| {
         if (b[index] != item) return false;
     }
     return true;

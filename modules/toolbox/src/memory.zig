@@ -38,8 +38,8 @@ pub fn PoolAllocator(comptime T: type) type {
             }
             element.in_use = true;
             if (comptime toolbox.IS_DEBUG) {
-                const to_alloc_address = @ptrToInt(&element.data);
-                const elements_address = @ptrToInt(self.elements.ptr);
+                const to_alloc_address = @intFromPtr(&element.data);
+                const elements_address = @intFromPtr(self.elements.ptr);
                 toolbox.assert(
                     to_alloc_address >= elements_address and to_alloc_address < elements_address + self.elements.len * @sizeOf(Element),
                     "Invalid address of element to allocate: {x}. Element pool address: {x}",
@@ -52,8 +52,8 @@ pub fn PoolAllocator(comptime T: type) type {
 
         pub fn free(self: *Self, to_free: *T) void {
             if (comptime toolbox.IS_DEBUG) {
-                const to_free_address = @ptrToInt(to_free);
-                const elements_address = @ptrToInt(self.elements.ptr);
+                const to_free_address = @intFromPtr(to_free);
+                const elements_address = @intFromPtr(self.elements.ptr);
                 toolbox.assert(
                     to_free_address >= elements_address and to_free_address < elements_address + self.elements.len * @sizeOf(Element),
                     "Invalid address of element to free: {x}. Element pool address: {x}",
@@ -103,16 +103,16 @@ pub const Arena = struct {
 
     pub fn push(arena: *Arena, comptime T: type) *T {
         const ret_bytes = arena.push_bytes_aligned(@sizeOf(T), @alignOf(T));
-        return @ptrCast(*T, ret_bytes.ptr);
+        return @as(*T, @ptrCast(ret_bytes.ptr));
     }
     pub fn push_slice(arena: *Arena, comptime T: type, n: usize) []T {
         const ret_bytes = arena.push_bytes_aligned(@sizeOf(T) * n, @alignOf(T));
-        return @ptrCast([*]T, ret_bytes.ptr)[0..n];
+        return @as([*]T, @ptrCast(ret_bytes.ptr))[0..n];
     }
     pub fn push_slice_clear(arena: *Arena, comptime T: type, n: usize) []T {
         const ret_bytes = arena.push_bytes_aligned(@sizeOf(T) * n, @alignOf(T));
         for (ret_bytes) |*b| b.* = 0;
-        return @ptrCast([*]T, ret_bytes.ptr)[0..n];
+        return @as([*]T, @ptrCast(ret_bytes.ptr))[0..n];
     }
 
     pub fn push_bytes_unaligned(arena: *Arena, n: usize) []u8 {
@@ -129,9 +129,9 @@ pub const Arena = struct {
         const aligned_pos = toolbox.align_up(arena.pos, alignment);
         const total_size = (aligned_pos - arena.pos) + n;
         if (arena.data.len - arena.pos >= total_size) {
-            var ret = @alignCast(alignment, arena.data[aligned_pos .. aligned_pos + n]);
+            var ret: []align(alignment) u8 = @alignCast(arena.data[aligned_pos .. aligned_pos + n]);
             arena.pos += total_size;
-            toolbox.assert(toolbox.is_aligned_to(@ptrToInt(ret.ptr), alignment), "Alignment of return value is wrong!", .{});
+            toolbox.assert(toolbox.is_aligned_to(@intFromPtr(ret.ptr), alignment), "Alignment of return value is wrong!", .{});
             toolbox.assert(arena.pos <= arena.data.len, "Arena position is bad!", .{});
             return ret;
         }
@@ -142,7 +142,7 @@ pub const Arena = struct {
         const Child = @typeInfo(@TypeOf(ptr)).Pointer.child;
         toolbox.asserteq(
             arena.pos,
-            @ptrToInt(arena.data.ptr) + (arena.data.len * @sizeOf(Child)) - @ptrToInt(ptr),
+            @intFromPtr(arena.data.ptr) + (arena.data.len * @sizeOf(Child)) - @intFromPtr(ptr),
             "Slice to expand must've been last allocation",
         );
         return ptr.ptr[0..new_size];
@@ -172,18 +172,18 @@ pub const Arena = struct {
 
 pub fn os_allocate_object(comptime T: type) *T {
     var memory = platform_allocate_memory(@sizeOf(T));
-    return @ptrCast(*T, @alignCast(@alignOf(T), memory.ptr));
+    return @as(*T, @ptrCast(@alignCast(memory.ptr)));
 }
 pub fn os_free_object(to_free: anytype) void {
     const object_size = @sizeOf(@TypeOf(to_free.*));
-    platform_free_memory(@ptrCast([*]u8, to_free)[0..object_size]);
+    platform_free_memory(@as([*]u8, @ptrCast(to_free))[0..object_size]);
 }
 pub fn os_allocate_objects(comptime T: type, n: usize) []T {
     var memory = platform_allocate_memory(n * @sizeOf(T));
-    return @ptrCast([*]T, @alignCast(@alignOf(T), memory.ptr))[0..n];
+    return @as([*]T, @ptrCast(@alignCast(memory.ptr)))[0..n];
 }
 pub fn os_free_objects(to_free: anytype) void {
-    platform_free_memory(@ptrCast([*]u8, to_free.ptr)[0 .. to_free.len * @sizeOf(toolbox.child_type(to_free))]);
+    platform_free_memory(@as([*]u8, @ptrCast(to_free.ptr))[0 .. to_free.len * @sizeOf(toolbox.child_type(to_free))]);
 }
 pub fn os_allocate_memory(n: usize) []u8 {
     return platform_allocate_memory(n);
@@ -219,7 +219,7 @@ fn unix_free_memory(memory: []u8) void {
 fn unix_allocate_memory(n: usize) []u8 {
     if (mman.mmap(null, n, mman.PROT_READ | mman.PROT_WRITE, mman.MAP_PRIVATE | mman.MAP_ANONYMOUS, -1, 0)) |ptr| {
         if (ptr != mman.MAP_FAILED) {
-            return @ptrCast([*]u8, ptr)[0..n];
+            return @as([*]u8, @ptrCast(ptr))[0..n];
         } else {
             toolbox.panic("Error allocating {} bytes of OS memory", .{n});
         }
@@ -239,12 +239,12 @@ fn macos_allocate_memory(n: usize) []u8 {
 
     const code = mach_vm_allocate(mach_task_self_, &address, n, VM_FLAGS_ANYWHERE);
     if (code == 0) {
-        return @intToPtr([*]u8, address)[0..n];
+        return @as([*]u8, @ptrFromInt(address))[0..n];
     }
     toolbox.panic("Error allocating {} bytes of OS memory. Code: {}", .{ n, code });
 }
 fn macos_free_memory(memory: []u8) void {
-    const code = mach_vm_deallocate(mach_task_self_, @ptrToInt(memory.ptr), memory.len);
+    const code = mach_vm_deallocate(mach_task_self_, @intFromPtr(memory.ptr), memory.len);
     if (code != 0) {
         toolbox.panic("Error freeing OS memory. Code: {}", .{code});
     }
@@ -260,7 +260,7 @@ fn posix_allocate_memory(n: usize) []u8 {
     //const data_opt = calloc(1, n);
     const data_opt = malloc(n);
     if (data_opt) |data| {
-        return @ptrCast([*]u8, data)[0..n];
+        return @as([*]u8, @ptrCast(data))[0..n];
     }
     toolbox.panic("Error allocating {} bytes of OS memory.", .{n});
 }
@@ -285,7 +285,7 @@ fn boksos_free_memory(memory: []u8) void {
 fn playdate_allocate_memory(n: usize) []u8 {
     const data_opt = toolbox.playdate_realloc(null, n);
     if (data_opt) |data| {
-        return @ptrCast([*]u8, data)[0..n];
+        return @as([*]u8, @ptrCast(data))[0..n];
     }
     toolbox.panic("Error allocating {} bytes of OS memory.", .{n});
 }

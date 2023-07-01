@@ -35,7 +35,7 @@ pub export fn eventHandler(playdate: *pdapi.PlaydateAPI, event: pdapi.PDSystemEv
 
                 var sfx: [22]*pdapi.SamplePlayer = undefined;
                 var buffer: [128]u8 = undefined;
-                inline for (sfx) |*s, i| {
+                inline for (&sfx, 0..) |*s, i| {
                     const file_name = std.fmt.bufPrintZ(&buffer, "sfx_{}", .{i}) catch |e|
                         toolbox.panic("Failed to create sfx file name: {}", .{e});
                     s.* = pdapi.new_sample_player();
@@ -45,7 +45,7 @@ pub export fn eventHandler(playdate: *pdapi.PlaydateAPI, event: pdapi.PDSystemEv
                 }
 
                 var music: [12]game.Music = undefined;
-                inline for (music) |*m, i| {
+                inline for (&music, 0..) |*m, i| {
                     const file_name = std.fmt.bufPrintZ(&buffer, "music_{}", .{i}) catch |e|
                         toolbox.panic("Failed to create music file name: {}", .{e});
                     const sample = pdapi.load_sample(file_name) catch
@@ -97,7 +97,7 @@ pub export fn eventHandler(playdate: *pdapi.PlaydateAPI, event: pdapi.PDSystemEv
     return 0;
 }
 fn update_and_render(userdata: ?*anyopaque) callconv(.C) c_int {
-    var game_state = @ptrCast(*game.Game, @alignCast(@alignOf(game.Game), userdata.?));
+    var game_state: *game.Game = @ptrCast(@alignCast(userdata.?));
     const now = toolbox.milliseconds();
     game_state.dt = now - game_state.last_frame_time;
     game_state.last_frame_time = now;

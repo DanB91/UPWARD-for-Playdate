@@ -47,10 +47,10 @@ pub inline fn set_update_callback(callback: ?pddefs.PDCallbackFunction, userdata
 
 //Draw Color
 pub inline fn solid_color_to_color(solid_color: pddefs.LCDSolidColor) pddefs.LCDColor {
-    return @intCast(usize, @enumToInt(solid_color));
+    return @as(usize, @intCast(@intFromEnum(solid_color)));
 }
 pub inline fn pattern_to_color(pattern: LCDPatternSlice) pddefs.LCDColor {
-    return @intCast(usize, @ptrToInt(pattern.ptr));
+    return @as(usize, @intCast(@intFromPtr(pattern.ptr)));
 }
 pub inline fn set_draw_mode(mode: pddefs.LCDBitmapDrawMode) void {
     pd.graphics.setDrawMode(mode);
@@ -73,7 +73,7 @@ pub inline fn clear_clip_rect() void {
 
 ////Screen
 pub inline fn clear_screen(color: pddefs.LCDSolidColor) void {
-    pd.graphics.clear(@intCast(pddefs.LCDColor, @enumToInt(color)));
+    pd.graphics.clear(@as(pddefs.LCDColor, @intCast(@intFromEnum(color))));
 }
 pub inline fn set_screen_clip_rect(x: Pixel, y: Pixel, width: Pixel, height: Pixel) void {
     pd.graphics.setScreenClipRect(x, y, width, height);
@@ -199,7 +199,7 @@ pub fn get_bitmap_data(bitmap: *pddefs.LCDBitmap) BitmapData {
 
     pd.graphics.getBitmapData(bitmap, &width, &height, &row_bytes, &mask_opt, &data_opt);
 
-    const data_size = @intCast(usize, row_bytes * height);
+    const data_size = @as(usize, @intCast(row_bytes * height));
     return .{
         .width = width,
         .height = height,
@@ -210,7 +210,7 @@ pub fn get_bitmap_data(bitmap: *pddefs.LCDBitmap) BitmapData {
 }
 
 pub inline fn get_table_bitmap(table: *pddefs.LCDBitmapTable, index: i32) ?*pddefs.LCDBitmap {
-    const table_bitmap = pd.graphics.getTableBitmap(table, @intCast(c_int, index));
+    const table_bitmap = pd.graphics.getTableBitmap(table, @as(c_int, @intCast(index)));
     return table_bitmap;
 }
 pub fn get_table_bitmap_size(table: *pddefs.LCDBitmapTable) i32 {
@@ -261,7 +261,7 @@ pub inline fn add_options_menu_item(
     return pd.system.addOptionsMenuItem(
         title.ptr,
         option_titles.ptr,
-        @intCast(c_int, option_titles.len),
+        @as(c_int, @intCast(option_titles.len)),
         callback,
         userdata,
     ).?;
@@ -280,13 +280,13 @@ pub inline fn add_checkmark_menu_item(
     ).?;
 }
 pub inline fn get_menu_item_value(menu_item: *pddefs.PDMenuItem) i32 {
-    return @intCast(i32, pd.system.getMenuItemValue(menu_item));
+    return @as(i32, @intCast(pd.system.getMenuItemValue(menu_item)));
 }
 pub inline fn get_menu_item_value_bool(menu_item: *pddefs.PDMenuItem) bool {
     return get_menu_item_value(menu_item) != 0;
 }
 pub inline fn set_menu_item_value(menu_item: *pddefs.PDMenuItem, value: i32) void {
-    pd.system.setMenuItemValue(menu_item, @intCast(c_int, value));
+    pd.system.setMenuItemValue(menu_item, @as(c_int, @intCast(value)));
 }
 pub inline fn set_menu_item_value_bool(menu_item: *pddefs.PDMenuItem, value: bool) void {
     get_menu_item_value(menu_item, if (value) 1 else 0);
@@ -319,10 +319,10 @@ pub inline fn flush_file(file: *pddefs.SDFile) void {
     _ = pd.file.flush(file);
 }
 pub fn read_file(file: *pddefs.SDFile, buffer: []u8) FileResult([]const u8) {
-    const bytes_read = pd.file.read(file, buffer.ptr, @intCast(c_uint, buffer.len));
+    const bytes_read = pd.file.read(file, buffer.ptr, @as(c_uint, @intCast(buffer.len)));
     if (bytes_read >= 0) {
         if (bytes_read <= buffer.len) {
-            return .{ .Ok = buffer[0..@intCast(usize, bytes_read)] };
+            return .{ .Ok = buffer[0..@as(usize, @intCast(bytes_read))] };
         } else {
             return .{ .Error = "Read unexpected number of bytes" };
         }
@@ -333,9 +333,9 @@ pub fn read_file(file: *pddefs.SDFile, buffer: []u8) FileResult([]const u8) {
 pub fn write_file(file: *pddefs.SDFile, buffer: []const u8) FileResult(void) {
     var bytes_written: usize = 0;
     while (bytes_written < buffer.len) {
-        const result = pd.file.write(file, buffer.ptr, @intCast(c_uint, buffer.len));
+        const result = pd.file.write(file, buffer.ptr, @as(c_uint, @intCast(buffer.len)));
         if (result >= 0) {
-            bytes_written += @intCast(usize, result);
+            bytes_written += @as(usize, @intCast(result));
         } else {
             return .{ .Error = std.mem.span(pd.file.geterr()) };
         }
@@ -368,11 +368,11 @@ pub fn list_files(path: [:0]const u8, arena: *toolbox.Arena) [][]const u8 {
     return context.paths_buffer[0..context.number_of_paths];
 }
 fn list_files_callback(path: [*c]const u8, userdata: ?*anyopaque) callconv(.C) void {
-    const context = @ptrCast(*ListFilesContext, @alignCast(@alignOf(ListFilesContext), userdata));
+    const context = @as(*ListFilesContext, @ptrCast(@alignCast(userdata)));
     const path_slice = std.mem.span(path);
 
     const result_path = context.arena.push_slice(u8, path_slice.len);
-    for (result_path) |*c, i| c.* = path[i];
+    for (result_path, 0..) |*c, i| c.* = path[i];
 
     context.paths_buffer[context.number_of_paths] = result_path;
     context.number_of_paths += 1;
@@ -412,7 +412,7 @@ pub inline fn load_into_sound_file_player(player: *pddefs.FilePlayer, path: [:0]
 }
 //repeat: >0: number of times to loop, 0: loop forever
 pub inline fn play_sound_file_player(player: *pddefs.FilePlayer, repeat: i32) void {
-    const play_result = pd.sound.fileplayer.play(player, @intCast(c_int, repeat));
+    const play_result = pd.sound.fileplayer.play(player, @intCast(repeat));
     toolbox.assert(play_result != 0, "Failed to play file player", .{});
 }
 pub inline fn stop_sound_file_player(player: *pddefs.FilePlayer) void {
@@ -459,7 +459,7 @@ var sample_player_loop_callback_state: struct {
 } = undefined;
 fn sample_player_loop_callback(c: ?*pddefs.SoundSource) callconv(.C) void {
     sample_player_loop_callback_state.callback(
-        @ptrCast(*pddefs.SamplePlayer, c),
+        @as(*pddefs.SamplePlayer, @ptrCast(c)),
         sample_player_loop_callback_state.userdata,
     );
 }

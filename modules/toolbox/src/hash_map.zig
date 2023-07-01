@@ -33,7 +33,7 @@ pub fn HashMap(comptime Key: type, comptime Value: type) type {
         };
 
         pub fn init(initial_capacity: usize, arena: *toolbox.Arena) Self {
-            const num_buckets = toolbox.next_power_of_2(@floatToInt(usize, @intToFloat(f64, initial_capacity) * 1.5));
+            const num_buckets = toolbox.next_power_of_2(@as(usize, @intFromFloat(@as(f64, @floatFromInt(initial_capacity)) * 1.5)));
             const buckets = arena.push_slice_clear(?KeyValue, num_buckets);
             return Self{
                 .indices = toolbox.RandomRemovalLinkedList(usize).init(),
@@ -54,7 +54,7 @@ pub fn HashMap(comptime Key: type, comptime Value: type) type {
 
         pub fn clone(self: *Self, arena: *toolbox.Arena) Self {
             var ret = init(self.cap(), arena);
-            for (self.buckets) |bucket_opt, i| {
+            for (self.buckets, 0..) |bucket_opt, i| {
                 if (bucket_opt) |bucket| {
                     const index_node = ret.indices.append(i, arena);
                     ret.buckets[i] = .{
@@ -164,7 +164,7 @@ pub fn HashMap(comptime Key: type, comptime Value: type) type {
                 to_bytes(&key);
             const h = hash_fnv1a64(key_bytes);
 
-            var index = @intCast(usize, h & (self.buckets.len - 1));
+            var index = @as(usize, @intCast(h & (self.buckets.len - 1)));
             var kvptr = &self.buckets[index];
             var did_delete = false;
             if (kvptr.*) |kv| {
@@ -180,10 +180,10 @@ pub fn HashMap(comptime Key: type, comptime Value: type) type {
             var dest = kvptr;
             //re-probe
             {
-                const index_bit_size = @intCast(u6, @ctz(self.buckets.len));
+                const index_bit_size = @as(u6, @intCast(@ctz(self.buckets.len)));
                 var i = index_bit_size;
                 while (i < @bitSizeOf(usize)) : (i += index_bit_size) {
-                    index = @intCast(usize, (h >> i) & (self.buckets.len - 1));
+                    index = @as(usize, @intCast((h >> i) & (self.buckets.len - 1)));
                     kvptr = &self.buckets[index];
                     if (kvptr.*) |kv| {
                         if (did_delete) {
@@ -237,7 +237,7 @@ pub fn HashMap(comptime Key: type, comptime Value: type) type {
                 to_bytes(&key);
             const h = hash_fnv1a64(key_bytes);
 
-            var index = @intCast(usize, h & (self.buckets.len - 1));
+            var index = @as(usize, @intCast(h & (self.buckets.len - 1)));
             var kvptr = &self.buckets[index];
             if (kvptr.*) |kv| {
                 if (eql(kv.k, key)) {
@@ -250,11 +250,11 @@ pub fn HashMap(comptime Key: type, comptime Value: type) type {
             self.index_collisions += 1;
             //re-probe
             {
-                const index_bit_size = @intCast(u6, @ctz(self.buckets.len));
+                const index_bit_size = @as(u6, @intCast(@ctz(self.buckets.len)));
                 var i = index_bit_size;
                 while (i < @bitSizeOf(usize)) : (i += index_bit_size) {
                     self.reprobe_collisions += 1;
-                    index = @intCast(usize, (h >> i) & (self.buckets.len - 1));
+                    index = @as(usize, @intCast((h >> i) & (self.buckets.len - 1)));
                     kvptr = &self.buckets[index];
                     if (kvptr.*) |kv| {
                         if (eql(kv.k, key)) {
@@ -310,10 +310,10 @@ fn to_bytes(v: anytype) []const u8 {
                 const Child = info.child;
                 switch (info.size) {
                     .Slice => {
-                        return @ptrCast([*]const u8, v.ptr)[0..@sizeOf(Child)];
+                        return @as([*]const u8, @ptrCast(v.ptr))[0..@sizeOf(Child)];
                     },
                     else => {
-                        return @ptrCast([*]const u8, v)[0..@sizeOf(Child)];
+                        return @as([*]const u8, @ptrCast(v))[0..@sizeOf(Child)];
                     },
                 }
             },
@@ -360,7 +360,7 @@ fn eql(a: anytype, b: @TypeOf(a)) bool {
         //},
         .Array => {
             if (a.len != b.len) return false;
-            for (a) |e, i|
+            for (a, 0..) |e, i|
                 if (!eql(e, b[i])) return false;
             return true;
         },

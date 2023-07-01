@@ -81,7 +81,7 @@ pub inline fn next_power_of_2(n: anytype) @TypeOf(n) {
         val >>= 1;
         count += 1;
     }
-    return @intCast(@TypeOf(n), 1) << count;
+    return @as(@TypeOf(n), @intCast(1)) << count;
 }
 
 pub inline fn clamp(v: anytype, low: @TypeOf(v), high: @TypeOf(v)) @TypeOf(v) {

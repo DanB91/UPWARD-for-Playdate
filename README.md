@@ -8,13 +8,8 @@ The code is released under GPLv3, but if you wish to write your own proprietary 
 
 ##  <a name="Compilation Requirements"></a>Compilation Requirements
 - Either macOS, Windows, or Linux.
-- Zig compiler that supports the "stage 2" self-hosted compiler.  Tested on 0.11.0, but in theory should support 0.10.0.
+- Zig compiler 0.11.0-dev.3867+ff37ccd29 or newer. Pulling down the latest build is your best bet.
 - [Playdate SDK](https://play.date/dev/) installed.
-- Binutils:
-    - GNU `objcopy` is required to be in your `PATH` on macOS, while `arm-none-eabi-objcopy` is required for Linux and Windows.
-    - For macOS, install `binutils` via homebrew with `brew install binutils`.
-    - For Linux, install `gcc-arm-none-eabi` in accordance with your distribution/package manager. For Ubuntu, install with `sudo apt install gcc-arm-none-eabi`.
-    - For Windows, follow paragraph `3.1` in the [Playdate SDK documentation](https://sdk.play.date/1.12.3/Inside%20Playdate%20with%20C.html#_install_development_tools).
     
 ## Compiling
 1. Make sure the Playdate SDK is installed, Zig is installed and in your PATH, and all other [requirements](#Requirements) are met.

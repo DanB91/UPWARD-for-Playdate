@@ -4,4 +4,4 @@ description=Upward, ho!
 bundleID=com.danielbokser.Upward
 version=1.0
 buildNumber=1
-imagePath=title_card
+imagePath=.

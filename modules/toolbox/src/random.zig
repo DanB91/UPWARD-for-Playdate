@@ -11,6 +11,6 @@ pub fn random32(state: *RandomState) u32 {
 }
 
 pub fn randomf_range(comptime min: comptime_float, comptime max: comptime_float, state: *RandomState) f32 {
-    const value = @intToFloat(f32, random32(state));
+    const value = @as(f32, @floatFromInt(random32(state)));
     return min + ((value - 0) * (max - min) / (0xFFFF_FFFF - 0));
 }
