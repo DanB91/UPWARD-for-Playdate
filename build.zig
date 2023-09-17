@@ -19,7 +19,7 @@ pub fn build(b: *std.build.Builder) !void {
     lib.addModule("toolbox", toolbox_module);
 
     const output_path = "Source";
-    const lib_step = b.addInstallArtifact(lib);
+    const lib_step = b.addInstallArtifact(lib, .{});
     lib_step.dest_dir = .{ .custom = output_path };
 
     const playdate_target = try std.zig.CrossTarget.parse(.{
@@ -40,7 +40,7 @@ pub fn build(b: *std.build.Builder) !void {
     game_elf.force_pic = true;
     game_elf.link_emit_relocs = true;
     game_elf.setLinkerScriptPath(.{ .path = "link_map.ld" });
-    const game_elf_step = b.addInstallArtifact(game_elf);
+    const game_elf_step = b.addInstallArtifact(game_elf, .{});
     game_elf_step.dest_dir = .{ .custom = output_path };
     if (optimize == .ReleaseFast) {
         game_elf.omit_frame_pointer = true;
