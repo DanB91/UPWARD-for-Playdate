@@ -13,14 +13,14 @@ The code is released under GPLv3, but if you wish to write your own proprietary 
     
 ## Compiling
 1. Make sure the Playdate SDK is installed, Zig is installed and in your PATH, and all other [requirements](#Requirements) are met.
-1. Run `zig build -Drelease-fast=true` which will compile the release version of the game.
+1. Run `zig build -Doptimize=ReleaseFast` which will compile the release version of the game.
     - If there any errors, double check `PLAYDATE_SDK_PATH` is correctly set and either binutils or the ARM Toolchain (depending on your OS) is properly installed and set in your `PATH`.
 1. The `upward.pdx` executable should be produced in the newly created `zig-out` folder.  
     - Keep in mind, this executable will only run on the platform you compiled on, plus Playdate hardware. If you want your `updward.pdx` to be "universal", you will need to compile this codebase on macOS, Windows, and Linux, and have an `upward.pdx` that contains `pdex.dylib`, `pdex.dll`, and `pdex.so`.   
 
 ## Running on the Playdate Simulator
 1. Make sure the Playdate Simulator is closed.
-1. Run `zig build -Drelease-fast=true run`.
+1. Run `zig build -Doptimize=ReleaseFast run`.
     - If there any errors, double check `PLAYDATE_SDK_PATH` is correctly set and either binutils or the ARM Toolchain (depending on your OS) is properly installed and set in your `PATH`.
 1. Optionally, connect your Playdate to the comupter and upload to the device by going to `Device` -> `Upload Game to Device..` in the Playdate Simulator.
 
