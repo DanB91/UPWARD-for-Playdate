@@ -9,7 +9,7 @@ The code is released under GPLv3, but if you wish to write your own proprietary 
 ##  <a name="Compilation Requirements"></a>Compilation Requirements
 - Either macOS, Windows, or Linux.
 - Zig compiler 0.12.0-dev.3156+0b2e23b06 or newer. Pulling down the latest build is your best bet.
-- [Playdate SDK](https://play.date/dev/) installed.
+- Latest [Playdate SDK](https://play.date/dev/) installed (2.4.1 as of this writing).
     
 ## Compiling
 1. Make sure the Playdate SDK is installed, Zig is installed and in your PATH, and all other [requirements](#Requirements) are met.
