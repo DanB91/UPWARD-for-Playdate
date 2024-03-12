@@ -28,7 +28,7 @@ pub export fn eventHandler(playdate: *pdapi.PlaydateAPI, event: pdapi.PDSystemEv
             const font = pdapi.load_font("PICO-8-2x");
             pdapi.set_font(font);
 
-            var game_state = b: {
+            const game_state = b: {
                 const sprites = pdapi.load_bitmap_table("sprites");
                 const sprites_bitmap = pdapi.load_bitmap("sprites");
                 const debug_font = font;
@@ -61,11 +61,11 @@ pub export fn eventHandler(playdate: *pdapi.PlaydateAPI, event: pdapi.PDSystemEv
                 const music_player = pdapi.new_sample_player();
 
                 var global_arena = toolbox.Arena.init(toolbox.mb(2));
-                var level_arena = toolbox.Arena.init(toolbox.mb(1));
-                var frame_arena = toolbox.Arena.init(toolbox.mb(1));
+                const level_arena = toolbox.Arena.init(toolbox.mb(1));
+                const frame_arena = toolbox.Arena.init(toolbox.mb(1));
 
-                var game_state = global_arena.push(game.Game);
-                var map_sprites = global_arena.push_slice(game.Sprite, level_data.map_sprites.len);
+                const game_state = global_arena.push(game.Game);
+                const map_sprites = global_arena.push_slice(game.Sprite, level_data.map_sprites.len);
 
                 const initial_state = game.GameInitialState{
                     .sprites = sprites,

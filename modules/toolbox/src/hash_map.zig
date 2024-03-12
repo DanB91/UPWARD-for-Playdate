@@ -177,7 +177,7 @@ pub fn HashMap(comptime Key: type, comptime Value: type) type {
                 return;
             }
 
-            var dest = kvptr;
+            const dest = kvptr;
             //re-probe
             {
                 const index_bit_size = @as(u6, @intCast(@ctz(self.buckets.len)));

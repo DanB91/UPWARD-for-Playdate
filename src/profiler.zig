@@ -83,13 +83,13 @@ pub fn flush_spall_json(scratch_arena: *toolbox.Arena) void {
     const save_point = scratch_arena.create_save_point();
     defer scratch_arena.restore_save_point(save_point);
 
-    var file_name_buffer = scratch_arena.push_slice(u8, 256);
-    var file_name = std.fmt.bufPrintZ(
+    const file_name_buffer = scratch_arena.push_slice(u8, 256);
+    const file_name = std.fmt.bufPrintZ(
         file_name_buffer,
         "spall_{}.json",
         .{toolbox.milliseconds()},
     ) catch |e| toolbox.panic("Error constructing spall file name: {}", .{e});
-    var spall_json_file = switch (pdapi.open_file(file_name, pdapi.FILE_WRITE)) {
+    const spall_json_file = switch (pdapi.open_file(file_name, pdapi.FILE_WRITE)) {
         .Ok => |file| file,
         .Error => |err| toolbox.panic(
             "Error opening spall.json: {s}",
@@ -105,7 +105,7 @@ pub fn flush_spall_json(scratch_arena: *toolbox.Arena) void {
 
         while (!g_spall_events.is_empty() and bytes_consumed + 128 < buffer.len) {
             const event = g_spall_events.dequeue();
-            var begin_line_buffer = buffer[bytes_consumed..];
+            const begin_line_buffer = buffer[bytes_consumed..];
             const begin_json = std.fmt.bufPrintZ(
                 begin_line_buffer,
                 "{{\"cat\":\"function\",\"name\":\"{s}\",\"ph\":\"B\",\"pid\":0,\"tid\":0,\"ts\":{}}},\n",
@@ -115,7 +115,7 @@ pub fn flush_spall_json(scratch_arena: *toolbox.Arena) void {
                 },
             ) catch |e| toolbox.panic("Error constructing spall JSON: {}", .{e});
             bytes_consumed += begin_json.len;
-            var end_line_buffer = buffer[bytes_consumed..];
+            const end_line_buffer = buffer[bytes_consumed..];
             const end_json = std.fmt.bufPrintZ(
                 end_line_buffer,
                 "{{\"ph\":\"E\",\"pid\":0,\"tid\":0,\"ts\":{}}},\n",

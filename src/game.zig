@@ -217,7 +217,7 @@ pub const Music = struct {
 pub fn init(
     initial_state: GameInitialState,
 ) void {
-    var game = initial_state.game;
+    const game = initial_state.game;
     game.* = .{
         .initial_state = initial_state,
 
@@ -876,7 +876,7 @@ fn update_entity(e: *entity.Entity, game: *Game) void {
                     enemy.is_killed = true;
                     blob_jump(-2, game);
                     blob.invincible_t = 10;
-                    var col_fill: P8Color = switch (enemy.class) {
+                    const col_fill: P8Color = switch (enemy.class) {
                         .White => 7,
                         .Black => 0,
                     };
@@ -1083,7 +1083,7 @@ fn update_entity(e: *entity.Entity, game: *Game) void {
                 const play_time = game.clock;
                 const play_min = @as(i32, @intFromFloat(play_time / 60));
                 const play_sec = @as(i32, @intFromFloat(play_time - @floor(play_time / 60) * 60));
-                var buffer = game.level_arena.push_slice(u8, 128);
+                const buffer = game.level_arena.push_slice(u8, 128);
                 game.clock_s = toolbox.string8_fmt(buffer, "{} min {} sec", .{ play_min, play_sec }) catch
                     toolbox.string8_literal("Error calculating time");
                 level.ms_blob = e;
@@ -1584,7 +1584,7 @@ fn spawn_entities_map(game: *Game) void {
                 },
                 13, 14 => {
                     // medicine
-                    var medicine = entity.create_medicine(worldx + 4, worldy);
+                    const medicine = entity.create_medicine(worldx + 4, worldy);
                     _ = game.entities.append(medicine, &game.level_arena);
                     mset(mapx, mapy, 13, game);
                 },
@@ -1698,12 +1698,12 @@ fn menu_item_hide_hud(userdata: ?*anyopaque) callconv(.C) void {
 }
 
 fn menu_item_level_retry(userdata: ?*anyopaque) callconv(.C) void {
-    var game = @as(*Game, @ptrCast(@alignCast(userdata.?)));
+    const game = @as(*Game, @ptrCast(@alignCast(userdata.?)));
     level_retry(game);
 }
 
 fn menu_item_main_menu(userdata: ?*anyopaque) callconv(.C) void {
-    var game = @as(*Game, @ptrCast(@alignCast(userdata.?)));
+    const game = @as(*Game, @ptrCast(@alignCast(userdata.?)));
     init(game.initial_state);
 }
 

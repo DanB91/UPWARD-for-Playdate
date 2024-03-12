@@ -73,7 +73,7 @@ pub const String8 = struct {
     }
     pub fn rune_at(self: *const String8, index: usize) RuneAndLength {
         var it = self.iterator();
-        var i: usize = 0;
+        const i: usize = 0;
         while (it.next()) |rune_and_length| {
             if (i == index) {
                 return rune_and_length;
