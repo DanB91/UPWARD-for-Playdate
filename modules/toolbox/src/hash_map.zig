@@ -296,29 +296,27 @@ pub fn hash_fnv1a64(data: []const u8) u64 {
 }
 
 fn to_bytes(v: anytype) []const u8 {
-    comptime {
-        const T = @TypeOf(v);
-        if (T == []const u8) {
-            return v;
-        }
-        if (T == toolbox.String8) {
-            return v.bytes;
-        }
-        const ti = @typeInfo(T);
-        switch (ti) {
-            .Pointer => |info| {
-                const Child = info.child;
-                switch (info.size) {
-                    .Slice => {
-                        return @as([*]const u8, @ptrCast(v.ptr))[0..@sizeOf(Child)];
-                    },
-                    else => {
-                        return @as([*]const u8, @ptrCast(v))[0..@sizeOf(Child)];
-                    },
-                }
-            },
-            else => @compileError("Parameter must be a pointer!"),
-        }
+    const T = @TypeOf(v);
+    if (T == []const u8) {
+        return v;
+    }
+    if (T == toolbox.String8) {
+        return v.bytes;
+    }
+    const ti = @typeInfo(T);
+    switch (ti) {
+        .Pointer => |info| {
+            const Child = info.child;
+            switch (info.size) {
+                .Slice => {
+                    return @as([*]const u8, @ptrCast(v.ptr))[0..@sizeOf(Child)];
+                },
+                else => {
+                    return @as([*]const u8, @ptrCast(v))[0..@sizeOf(Child)];
+                },
+            }
+        },
+        else => @compileError("Parameter must be a pointer!"),
     }
 }
 
