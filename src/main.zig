@@ -6,6 +6,7 @@ const level_data = @import("level_data.zig");
 const profiler = @import("profiler.zig");
 
 pub const THIS_PLATFORM = toolbox.Platform.Playdate;
+pub const panic = toolbox.panic_handler;
 
 pub export fn eventHandler(playdate: *pdapi.PlaydateAPI, event: pdapi.PDSystemEvent, arg: u32) c_int {
     _ = arg;

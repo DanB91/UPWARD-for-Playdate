@@ -60,7 +60,7 @@ pub fn PoolAllocator(comptime T: type) type {
                     .{ to_free_address, elements_address },
                 );
             }
-            var element = @fieldParentPtr(Element, "data", to_free);
+            var element: Element = @fieldParentPtr("data", to_free);
             element.in_use = false;
         }
     };
